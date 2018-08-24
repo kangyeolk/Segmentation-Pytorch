@@ -1,8 +1,15 @@
-<<<<<<< HEAD
-### Semantic Segmentation
+## Semantic Segmentation
 
-possible??
-=======
-# Segmentation-Pytorch
 Semantic segmentation implementation using pytorch framework
->>>>>>> 2021aecfa6af5db38078186853dc794fd3e635f4
+
+### Currnet
+- U-Net
+
+### TODO
+
+- [ ] Add Cityscape dataset to dataloader
+- [ ] Data argumentation
+- [ ] FCN as baseline
+- [ ] PSP-Net
+- [ ] EncNet
+- [ ] Traing result
