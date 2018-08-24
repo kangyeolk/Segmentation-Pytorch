@@ -63,7 +63,11 @@ def to_mask(x):
     flatten_np_x = np_x.reshape(-1, C)
     empty = np.zeros_like(flatten_np_x)[:, 0]
     for i, it in enumerate(flatten_np_x):
-        empty[i] = palette.index(list(it))
+        # Remove void part as background
+        if list(it) == [224, 224, 192]:
+            empty[i] = 0
+        else:
+            empty[i] = palette.index(list(it))
     mask = empty.reshape(H, W, 1).transpose(2, 0, 1)
     return torch.from_numpy(mask).squeeze().long()
 
@@ -78,7 +82,7 @@ def to_rgb(xs):
         H, W = np_x.shape
         flatten_np_x = np_x.reshape(-1)
         expand_np_x = np_x.reshape(-1, 1).repeat(3, axis=-1) # (H, W, 3)
-        for j in range(22):
+        for j in range(21):
             expand_np_x[np.where(flatten_np_x == j)] = palette[j]
         rgbs[i] = expand_np_x.reshape(H, W, 3)
     rgbs = rgbs.transpose(0, 3, 1, 2)
