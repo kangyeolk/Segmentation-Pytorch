@@ -1,7 +1,7 @@
 import torch
 from torch import optim
 import torch.nn as nn
-from models import UNet, FCN
+from models import fcn, unet
 from datasets.voc import to_rgb
 
 import time
@@ -45,9 +45,9 @@ class Trainer:
     def build_model(self):
         if self.cfg.model == 'unet':
             self.model = unet.UNet(num_classes=21, in_dim=3, conv_dim=64)
-        elif: self.cfg.model == 'fcn':
-            self.model = FCN.FCN8(num_classes=21)
-        elif: self.cfg.model == 'pspnet': 
+        elif self.cfg.model == 'fcn':
+            self.model = fcn.FCN8(num_classes=21)
+        elif self.cfg.model == 'pspnet': 
             # TODO:
             pass
         self.optim = optim.Adam(self.model.parameters(),
