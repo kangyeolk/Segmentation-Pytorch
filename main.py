@@ -42,7 +42,7 @@ def get_loader(config):
                            transform=transform)
         val_data_loader = DataLoader(train_data_set,
                                      batch_size=config.val_batch_size,
-                                     shuffle=True)
+                                     shuffle=False) # For make samples out of various models, shuffle=False
     elif config.dataset == 'gta':
         # TODO:
         pass
@@ -51,7 +51,8 @@ def get_loader(config):
 
 
 def main(config):
-
+    import sys
+    print(sys.version)
     make_dir(config.model_save_path)
     make_dir(config.sample_save_path)
 
@@ -69,12 +70,13 @@ if __name__ == '__main__':
 
     #
     parser.add_argument('--mode', type=str, default='train', choices=['train'])
-    parser.add_argument('--model', type=str, default='encnet', choices=['unet', 'encnet'])
+    parser.add_argument('--model', type=str, default='fcn8', choices=['fcn8', 'unet', 'pspnet_avg',
+                                                                      'pspnet_max', 'encnet'])
     parser.add_argument('--dataset', type=str, default='voc', choices=['voc'])
 
 
     # Training setting
-    parser.add_argument('--n_iters', type=int, default=100)
+    parser.add_argument('--n_iters', type=int, default=10000)
     parser.add_argument('--train_batch_size', type=int, default=2)
     parser.add_argument('--val_batch_size', type=int, default=2)
     parser.add_argument('--lr', type=float, default=1e-4)
@@ -95,7 +97,10 @@ if __name__ == '__main__':
     parser.add_argument('--model_save_step', type=int, default=10, help='Saving epoch')
     parser.add_argument('--sample_save_step', type=int, default=10, help='Saving epoch')
 
-    # ELSE TODO
+    # MISC
+
+
+
     config = parser.parse_args()
     print(config)
     main(config)

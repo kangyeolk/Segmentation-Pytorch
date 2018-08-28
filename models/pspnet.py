@@ -1,5 +1,5 @@
-""" 
-PSPNet with pretrained dilated ResNet 50 
+"""
+PSPNet with pretrained dilated ResNet 50
 1. For simplicity, I adapted only two setting:
     - ResNet50 + B1236 + Maxpooling
     - ResNet50 + B1236 + Avgpooling
@@ -11,6 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 import torch.utils.model_zoo as model_zoo
+from collections import OrderedDict
 
 
 model_urls = {
@@ -23,9 +24,12 @@ model_urls = {
 
 def load_weights(target, source_state):
     """ Load pretrained weight without fc part """
-    new_dict = dict()
-    for (k1, v1), (k2, v2) in zip(target.state_dict().items(), source_state.items()):
-        new_dict[k1] = v2
+    new_dict = OrderedDict()
+    for (k1, v1) in target.state_dict().items():
+        for (k2, v2) in source_state.items():
+            if k1 == k2:
+                new_dict[k1] = v2
+                continue
     target.load_state_dict(new_dict)
 
 def conv3x3(in_planes, out_planes, dilation):
@@ -159,7 +163,6 @@ class ResNet(nn.Module):
 
 def drn_resnet50(pretrained=True):
     """Constructs a ResNet-50 model.
-
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
@@ -178,9 +181,9 @@ class PSPModule(nn.Module):
         self.in_dim = in_dim
         self.pyramid_dim = in_dim // 4 # ratio of global, local features
         self.pool_type = pool_type
-        self.stages = [self._make_stage(size) for size in sizes]
+        self.stages = nn.ModuleList([self._make_stage(size) for size in sizes])
         self.bottleneck = nn.Conv2d(2*in_dim, out_dim, kernel_size=1)
-    
+
     def _make_stage(self, size):
         layers = []
         if self.pool_type == 'avg':
@@ -192,8 +195,8 @@ class PSPModule(nn.Module):
 
     def forward(self, x):
         h, w = x.size(2), x.size(3)
-        out = [F.upsample(input=stage(x), size=(h, w), mode='bilinear') for stage in self.stages] + [x]
-        out = torch.cat(out, dim=1)
+        out = [F.upsample(input=stage(x), size=(h, w), mode='bilinear') for stage in self.stages]
+        out = torch.cat((*out, x), dim=1)
         out = self.bottleneck(out)
         return out # 1/8
 
@@ -206,24 +209,25 @@ class PSPUpsample(nn.Module):
             nn.Conv2d(in_dim, out_dim, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_dim),
             nn.ReLU())
-    
+
     def forward(self, x):
-        out_h, out_w = 2*x.size(2), 2*x.size(3) 
+        out_h, out_w = 2*x.size(2), 2*x.size(3)
         out = self.conv(x)
         out = F.upsample(input=out, size=(out_h, out_w))
         return out
 
 class PSPNet(nn.Module):
-    def __init__(self, n_classes, pool_type='avg', pretrained=True):
+    def __init__(self, num_classes, pool_type='avg', pretrained=True):
         super(PSPNet, self).__init__()
-        self.n_classes = n_classes
-        self.extractor = drn_resnet50(pretrained=pretrained)
-        self.pspmd = PSPModule(in_dim=2048, out_dim=1024, sizes=(1, 2, 3, 6), pool_type=pool_type) 
-        self.up2x = PSPUpsample(1024, 256)
-        self.up4x = PSPUpsample(256, 64)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #FIXME
+        self.num_classes = num_classes
+        self.extractor = drn_resnet50(pretrained=pretrained).to(self.device)
+        self.pspmd = PSPModule(in_dim=2048, out_dim=1024, sizes=(1, 2, 3, 6), pool_type=pool_type).to(self.device)
+        self.up2x = PSPUpsample(1024, 256).to(self.device)
+        self.up4x = PSPUpsample(256, 64).to(self.device)
         self.up8x = PSPUpsample(64, 64)
         self.last = nn.Sequential(
-            nn.Conv2d(64, n_classes, kernel_size=1, bias=False),
+            nn.Conv2d(64, num_classes, kernel_size=1, bias=False),
             nn.Softmax(dim=1))
 
     def forward(self, input):
@@ -231,7 +235,7 @@ class PSPNet(nn.Module):
         features = self.extractor(input)
         concat = self.pspmd(features)
         concat2x = self.up2x(concat)
-        concat4x = self.up4x(concat2x) 
+        concat4x = self.up4x(concat2x)
         concat8x = self.up8x(concat4x)
         out = self.last(concat8x)
         assert out.size(2) == h and out.size(3) == w, 'Size mismatched {} == {}? / {} == {}?' \

@@ -11,7 +11,7 @@ class Vgg16Part(nn.Module):
         self.l4 = []
         self.l5 = []
         self.transfer()
-    
+
     def transfer(self):
         layers = self.pre_vgg16._modules['features']
         for i in range(0, 17):
@@ -23,19 +23,19 @@ class Vgg16Part(nn.Module):
         for i in range(24, 31):
             self.l5.append(layers[i])
         self.l5 = nn.Sequential(*self.l5)
-    
+
     def forward(self, x):
         pool3 = self.l3(x)
         pool4 = self.l4(pool3)
         pool5 = self.l5(pool4)
         return pool3, pool4, pool5
-        
+
 
 class FCN8(nn.Module):
-    def __init__(self, n_classes=21):
+    def __init__(self, num_classes=21):
         super(FCN8, self).__init__()
         self.pretrained = Vgg16Part()
-        self.n_classes = n_classes
+        self.num_classes = num_classes
 
         # Convolutionized FC Block
         # Preserve feature map size
@@ -47,13 +47,13 @@ class FCN8(nn.Module):
             nn.ReLU())
 
         # Prediction Block
-        self.score_last = nn.Conv2d(4096, n_classes, kernel_size=1)
-        self.score_pool3 = nn.Conv2d(256, n_classes, kernel_size=1)
-        self.score_pool4 = nn.Conv2d(512, n_classes, kernel_size=1)
+        self.score_last = nn.Conv2d(4096, num_classes, kernel_size=1)
+        self.score_pool3 = nn.Conv2d(256, num_classes, kernel_size=1)
+        self.score_pool4 = nn.Conv2d(512, num_classes, kernel_size=1)
 
         # Upsample Block
-        self.up2x = nn.ConvTranspose2d(n_classes, n_classes, kernel_size=4, stride=2, padding=1, bias=False)
-        self.up8x = nn.ConvTranspose2d(n_classes, n_classes, kernel_size=16, stride=8, padding=4, bias=False)
+        self.up2x = nn.ConvTranspose2d(num_classes, num_classes, kernel_size=4, stride=2, padding=1, bias=False)
+        self.up8x = nn.ConvTranspose2d(num_classes, num_classes, kernel_size=16, stride=8, padding=4, bias=False)
 
     def forward(self, x):
         pool3, pool4, pool5 = self.pretrained(x) # 1/8, 1/16 1/32
