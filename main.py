@@ -71,7 +71,7 @@ if __name__ == '__main__':
     #
     parser.add_argument('--mode', type=str, default='train', choices=['train'])
     parser.add_argument('--model', type=str, default='fcn8', choices=['fcn8', 'unet', 'pspnet_avg',
-                                                                      'pspnet_max', 'encnet'])
+                                                                      'pspnet_max', 'dfnet'])
     parser.add_argument('--dataset', type=str, default='voc', choices=['voc'])
 
 

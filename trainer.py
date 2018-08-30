@@ -1,7 +1,7 @@
 import torch
 from torch import optim
 import torch.nn as nn
-from models import fcn, unet, pspnet
+from models import fcn, unet, pspnet, dfn
 from datasets.voc import to_rgb
 import torch.backends.cudnn as cudnn
 
@@ -61,6 +61,10 @@ class Trainer:
             self.model = pspnet.PSPNet(num_classes=21, pool_type='avg')
         elif self.cfg.model == 'pspnet_max':
             self.model = pspnet.PSPNet(num_classes=21, pool_type='max')
+        elif self.cfg.model == 'dfnet':
+            self.model = dfn.SmoothNet(num_classes=21,
+                                       h_image_size=self.cfg.h_image_size,
+                                       w_image_size=self.cfg.w_image_size)
         self.optim = optim.Adam(self.model.parameters(),
                                 lr=self.cfg.lr,
                                 betas=[self.cfg.beta1, self.cfg.beta2])
@@ -171,7 +175,7 @@ class Trainer:
         if USE_NSML:
             ori_pic = self.denorm(input_var[0:4])
             self.viz.images(ori_pic, opts=dict(title='Original_' + str(epoch)))
-            gt_mask = to_rgb(target_var[0:4].cpu())
+            gt_mask = to_rgb(target_var[0:4])
             self.viz.images(gt_mask, opts=dict(title='GT_mask_' + str(epoch)))
             model_mask = to_rgb(output_label[0:4].cpu())
             self.viz.images(model_mask, opts=dict(title='Model_mask_' + str(epoch)))

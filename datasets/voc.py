@@ -82,7 +82,7 @@ def to_rgb(xs):
         H, W = np_x.shape
         flatten_np_x = np_x.reshape(-1)
         expand_np_x = np_x.reshape(-1, 1).repeat(3, axis=-1) # (H, W, 3)
-        for j in range(21):
+        for j in range(22):
             expand_np_x[np.where(flatten_np_x == j)] = palette[j]
         rgbs[i] = expand_np_x.reshape(H, W, 3)
     rgbs = rgbs.transpose(0, 3, 1, 2)
