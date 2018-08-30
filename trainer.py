@@ -4,6 +4,7 @@ import torch.nn as nn
 from models import fcn, unet, pspnet, dfn
 from datasets.voc import to_rgb
 import torch.backends.cudnn as cudnn
+from torch.optim.lr_scheduler import LambdaLR
 
 import time
 from datetime import timedelta
@@ -68,6 +69,9 @@ class Trainer:
         self.optim = optim.Adam(self.model.parameters(),
                                 lr=self.cfg.lr,
                                 betas=[self.cfg.beta1, self.cfg.beta2])
+        # Poly learning rate policy
+        lr_lambda = lambda n_iter: (1 - n_iter/self.cfg.n_iters)^self.cfg.lr_exp
+        self.scheduler = LambdaLR(self.optim, lr_lambda=lr_lambda)
         self.c_loss = nn.CrossEntropyLoss().to(self.device)
         self.softmax = nn.Softmax(dim=1).to(self.device) # channel-wise softmax
 
@@ -94,6 +98,7 @@ class Trainer:
         train_start_time = time.time()
         data_iter = iter(self.train_data_loader)
         for n_iter in range(self.cfg.n_iters):
+            self.scheduler.step()
             try:
                 input, target = next(data_iter)
             except:

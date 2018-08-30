@@ -80,6 +80,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_batch_size', type=int, default=2)
     parser.add_argument('--val_batch_size', type=int, default=2)
     parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--lr_exp', type=float, default=0.9)
     parser.add_argument('--beta1', type=float, default=5e-1)
     parser.add_argument('--beta2', type=float, default=0.99)
     parser.add_argument('--h_image_size', type=int, default=512)

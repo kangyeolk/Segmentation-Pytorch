@@ -32,6 +32,17 @@ Semantic segmentation implementation using pytorch framework.
 ***Pascal VOC 2012 / FCN8***
 <p align="center"><img width="100%" src="assets/FCN8_53_1.png" /></p>
 
+### Usage
+
+**To train models**
+
+```bash
+python main.py --mode train --model unet --dataset voc \
+-- n_iters 10000 --train_batch_size 16 val_batch_size 16 \
+--h_image_size 256 --w_image_size 256 \
+--model_save_path './models' --sample_save_path './samples'
+```
+
 ### TODO
 
 - [ ] Add Cityscape dataset
