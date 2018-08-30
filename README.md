@@ -22,16 +22,15 @@ Semantic segmentation implementation using pytorch framework.
 * I changed some parts of network to lighten network.
 * I used augmented dataset. (Currently, I only applied flip operation for augmentation.)
 
-### Some results
+### Some results (Updated soon)
 
 *GT images-GT masks-Model predictions* <br/>
 
-<p align='center'>***U-Net***</p>
-![U-Net](/assets/unet_40.png)
+***Pascal VOC 2012 / U-Net***
+<p align="center"><img width="100%" src="assets/unet_40.png" /></p>
 
-<p align='center'>***FCN8***</p>
-![FCN8](/assets/FCN8_53_1.png)
-
+***Pascal VOC 2012 / FCN8***
+<p align="center"><img width="100%" src="assets/FCN8_53_1.png" /></p>
 
 ### TODO
 
